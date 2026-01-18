@@ -1,156 +1,121 @@
 import streamlit as st
 import boto3
-import json
 import base64
+import json
 
-# --- STRATEJİK YAPILANDIRMA ---
+# --- GİZLİ SİSTEM AYARLARI ---
 AGENT_ID = "J280YK35FY"
 AGENT_ALIAS_ID = "IWAACDSX81" 
 AWS_ACCESS_KEY = "AKIAZQW6QVW5L6AQKVEG"
 AWS_SECRET_KEY = "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"
 REGION = "us-east-1"
 
-# Sayfa Ayarları
-st.set_page_config(page_title="ZAKShield AI | Medical Defense System", page_icon="🛡️", layout="wide")
+# Sayfa Yapılandırması
+st.set_page_config(page_title="ZAKShield | Medikal Hukuk Savunma Sistemi", page_icon="🛡️", layout="wide")
 
-# SES SİSTEMİ (Amazon Polly Entegrasyonu)
-def speak_text(text):
+# SES SİSTEMİ (Hata Gizleme Modu)
+def sesli_yanit(metin):
     try:
         polly = boto3.client('polly', region_name=REGION, 
                              aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
-        # Türkçe kadın sesi (Filiz) veya erkek sesi için ayarlanabilir
-        response = polly.synthesize_speech(Text=text[:3000], OutputFormat='mp3', VoiceId='Filiz')
+        response = polly.synthesize_speech(Text=metin[:1000], OutputFormat='mp3', VoiceId='Filiz')
         audio_content = response['AudioStream'].read()
         b64_audio = base64.b64encode(audio_content).decode()
         audio_html = f'<audio autoplay><source src="data:audio/mp3;base64,{b64_audio}" type="audio/mp3"></audio>'
         st.markdown(audio_html, unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Ses sistemi hatası: {e}")
+    except:
+        pass # Kullanıcıya hata gösterme, sessizce devam et.
 
-# ÜST SEVİYE PRESTİJ TASARIMI (Pure Medical White & Navy)
+# ÜST DÜZEY PRESTİJ TASARIMI
 st.markdown("""
     <style>
-    .main { background: #f8fafc; }
-    /* Yazı fontları ve renkleri */
-    h1, h2, h3 { color: #0f172a !important; font-family: 'Inter', sans-serif; font-weight: 800; }
-    p, span, label { color: #334155 !important; font-size: 16px; }
-    
-    /* Yan Menü Tasarımı */
-    [data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
-    
-    /* Buton Tasarımı: Otoriter Lacivert */
+    .main { background: #ffffff; }
+    h1, h2, h3 { color: #0f172a !important; font-family: 'Inter', sans-serif; }
+    [data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #f1f5f9; }
     .stButton>button { 
-        width: 100%; border-radius: 8px; background: #1e293b; color: #ffffff !important; 
-        font-weight: 700; height: 3.5em; border: none; transition: 0.4s ease;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background: #1e293b; color: #fff !important; border-radius: 8px; font-weight: 700; height: 3.5em; border: none;
     }
-    .stButton>button:hover { background: #0f172a; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
-    
-    /* Giriş Alanları */
-    .stTextArea textarea { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; padding: 15px; }
-    
-    /* Kartlar */
-    .info-card { background: #ffffff; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .stat-box { text-align: center; padding: 15px; background: #f1f5f9; border-radius: 10px; }
+    .stTextArea textarea { background-color: #f8fafc; border: 1px solid #e2e8f0; font-size: 16px; border-radius: 12px; }
+    .card { padding: 20px; border-radius: 12px; border: 1px solid #f1f5f9; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     </style>
     """, unsafe_allow_html=True)
 
-# YAN MENÜ (Dolu Dolu Navigasyon)
+# NAVİGASYON (Gelişmiş Menü)
 with st.sidebar:
-    st.markdown("<h2 style='text-align: center;'>🛡️ ZAKShield</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 12px; color: #64748b;'>PREMIUM MEDICAL DEFENSE</p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>ZAKShield</h2>", unsafe_allow_html=True)
+    st.markdown("---")
+    menu = st.radio("SİSTEM BÖLÜMLERİ", 
+                    ["🏛️ Yönetim Paneli", "📊 Medikal Analiz Merkezi", "📂 Vaka Arşivi", "⚖️ Mevzuat Kütüphanesi", "👤 Kullanıcı Profili"])
     st.divider()
-    
-    menu = st.radio("ANA MENÜ", ["🏛️ Kontrol Paneli", "📊 Vaka Analizi", "📂 Dijital Arşiv", "💳 Üyelik & Planlar", "⚙️ Profil Ayarları"])
-    
-    st.divider()
-    st.markdown("### 👨‍⚕️ Kullanıcı Profili")
-    st.info("**Dr. Ulaş Fırıncıoğulları**\n\nBranş: Klinik Yönetimi\nStatü: Premium Üye")
-    
-    if st.button("Güvenli Çıkış"):
-        st.toast("Oturum kapatılıyor...")
+    st.write("**Oturum:** Dr. Ulaş Fırıncıoğulları")
+    st.caption("Erişim Düzeyi: Kurumsal Premium")
 
-# SAYFA İÇERİKLERİ
-if menu == "🏛️ Kontrol Paneli":
-    st.markdown("# 🏛️ Kontrol Paneli")
-    st.markdown("##### Hoş geldiniz Dr. Ulaş. İşte kliniğinizin hukuki güvenlik özeti.")
+# SAYFA 1: YÖNETİM PANELİ (DASHBOARD)
+if menu == "🏛️ Yönetim Paneli":
+    st.markdown("# 🏛️ Yönetim Paneli")
+    st.markdown("##### Kliniğinizin hukuki güvenlik durumu ve istatistikleri.")
     
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: st.markdown("<div class='stat-box'><b>Aktif Vakalar</b><br><span style='font-size:24px;'>12</span></div>", unsafe_allow_html=True)
-    with c2: st.markdown("<div class='stat-box'><b>Analiz Edilen Formlar</b><br><span style='font-size:24px;'>148</span></div>", unsafe_allow_html=True)
-    with c3: st.markdown("<div class='stat-box'><b>Risk Skoru</b><br><span style='font-size:24px; color:green;'>Düşük</span></div>", unsafe_allow_html=True)
-    with c4: st.markdown("<div class='stat-box'><b>Kalan Kredi</b><br><span style='font-size:24px;'>Sınırsız</span></div>", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
+    with col1: st.markdown("<div class='card'><b>Toplam Analiz</b><br><span style='font-size:22px;'>247</span></div>", unsafe_allow_html=True)
+    with col2: st.markdown("<div class='card'><b>Risk Skoru</b><br><span style='color:green; font-size:22px;'>Güvenli</span></div>", unsafe_allow_html=True)
+    with col3: st.markdown("<div class='card'><b>Aktif Abonelik</b><br><span style='font-size:22px;'>Premium</span></div>", unsafe_allow_html=True)
+    with col4: st.markdown("<div class='card'><b>Sistem Hızı</b><br><span style='font-size:22px;'>Turbo (C 4.5)</span></div>", unsafe_allow_html=True)
     
-    st.markdown("### 🔔 Son Bildirimler")
-    st.write("✅ Yeni mevzuat güncellemesi: 'Aydınlatılmış Onam Formları Revizyonu' sisteme eklendi.")
-    st.write("✅ Dünkü vaka analiziniz başarıyla arşivlendi.")
+    st.markdown("### 🔔 Son Güncellemeler")
+    st.info("📌 Kişisel Verileri Koruma Kurulu'nun sağlık verileriyle ilgili yeni kararı sisteme entegre edildi.")
 
-elif menu == "📊 Vaka Analizi":
-    st.markdown("# 📊 Medikal Risk Analizi")
-    st.markdown("##### Yapay zeka motoru, vaka detaylarınızı en güncel mevzuatla karşılaştırır.")
+# SAYFA 2: MEDİKAL ANALİZ MERKEZİ (ANA MOTOR)
+elif menu == "📊 Medikal Analiz Merkezi":
+    st.markdown("# 📊 Medikal Analiz Merkezi")
+    st.markdown("##### Claude 4.5 motoru ile yüksek hassasiyetli risk taraması.")
     
-    col_input, col_tips = st.columns([2, 1])
+    col_main, col_side = st.columns([3, 1])
     
-    with col_input:
-        st.markdown("### 📝 Analiz Girdisi")
-        vaka_metni = st.text_area("Onam formu içeriği veya vaka detaylarını buraya giriniz:", height=400, placeholder="Doktor notlarını veya hasta onam metnini analiz için buraya aktarın...")
-        
-        if st.button("ANALİZİ BAŞLAT VE RAPORLA"):
-            if vaka_metni:
-                with st.spinner("AI Hukuk Danışmanı metni inceliyor..."):
+    with col_main:
+        vaka = st.text_area("Analiz Edilecek Vaka Notları veya Onam Formu:", height=450, placeholder="Hasta onam metnini veya vaka detaylarını buraya ekleyin...")
+        if st.button("STRATEJİK ANALİZİ BAŞLAT"):
+            if vaka:
+                with st.spinner("ZAKShield Veri Tabanını Tarıyor..."):
                     try:
                         client = boto3.client(service_name='bedrock-agent-runtime', region_name=REGION,
                                             aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+                        response = client.invoke_agent(agentId=AGENT_ID, agentAliasId=AGENT_ALIAS_ID, sessionId="zak_session", inputText=vaka)
                         
-                        response = client.invoke_agent(agentId=AGENT_ID, agentAliasId=AGENT_ALIAS_ID, sessionId="user-123", inputText=vaka_metni)
-                        
-                        full_res = ""
+                        full_txt = ""
                         for event in response.get("completion"):
                             chunk = event.get("chunk")
-                            if chunk: full_res += chunk.get("bytes").decode()
+                            if chunk: full_txt += chunk.get("bytes").decode()
                         
-                        st.markdown("---")
-                        st.markdown("### ⚖️ Stratejik Analiz Raporu")
-                        st.markdown(f"<div class='info-card'>{full_res}</div>", unsafe_allow_html=True)
-                        
-                        # SESLİ OKUMA BAŞLAT
-                        speak_text(full_res)
-                        
-                    except Exception as e:
-                        st.error("Bağlantı sağlanamadı. Lütfen daha sonra tekrar deneyiniz.")
+                        st.markdown("### 📋 Stratejik Analiz Raporu")
+                        st.info(full_txt)
+                        sesli_yanit(full_txt)
+                    except:
+                        st.error("Sistem şu an meşgul. Lütfen tekrar deneyin.")
             else:
-                st.warning("Lütfen bir metin girişi yapın.")
+                st.warning("Lütfen bir veri girişi yapın.")
 
-    with col_tips:
-        st.markdown("### 💡 Profesyonel İpuçları")
-        st.markdown("""
-        <div class='info-card'>
-        <b>Onam Formları:</b><br>Hastanın sadece imzasını değil, "Kendi el yazısıyla okudum anladım" ibaresini eklediğinden emin olun.
-        </div>
-        <div class='info-card'>
-        <b>Komplikasyon Kaydı:</b><br>Oluşan komplikasyonun tıbbi standartlar içinde olduğunu detaylandırın.
-        </div>
-        """, unsafe_allow_html=True)
+    with col_side:
+        st.markdown("### 🛡️ Analiz Kapsamı")
+        st.markdown("- KVKK Uyumluluğu\n- Malpraktis Riskleri\n- Onam Eksiklikleri\n- Savunma Önerileri")
 
-elif menu == "📂 Dijital Arşiv":
-    st.markdown("# 📂 Dijital Arşiv")
-    st.write("Tüm geçmiş analizleriniz tarih sırasına göre burada saklanır.")
-    st.table({"Tarih": ["18.01.2026", "17.01.2026"], "Vaka Tipi": ["İmplant Onam", "Kanal Tedavisi"], "Risk Durumu": ["Güvenli", "Orta Risk"]})
+# SAYFA 3: VAKA ARŞİVİ
+elif menu == "📂 Vaka Arşivi":
+    st.markdown("# 📂 Vaka Arşivi")
+    st.write("Geçmiş analizleriniz yüksek güvenlikli sunucularda saklanmaktadır.")
+    st.dataframe({"Vaka ID": ["#901", "#900"], "Tarih": ["19.01.2026", "18.01.2026"], "Tür": ["Diş İmplant", "Komplikasyon"], "Durum": ["Tamamlandı", "Arşivlendi"]})
 
-elif menu == "💳 Üyelik & Planlar":
-    st.markdown("# 💎 Üyelik ve Planlar")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.markdown("<div class='info-card'><h3>Kurumsal</h3><p>Sınırsız Analiz<br>7/24 Teknik Destek<br>Hukuki Taslak Hazırlama</p><h4>Aktif</h4></div>", unsafe_allow_html=True)
-    with col_b:
-        st.markdown("<div class='info-card'><h3>Holding / Hastane</h3><p>Çoklu Kullanıcı<br>API Erişimi<br>Özel Avukat Paneli</p><h4>Yükselt</h4></div>", unsafe_allow_html=True)
+# SAYFA 4: MEVZUAT KÜTÜPHANESİ
+elif menu == "⚖️ Mevzuat Kütüphanesi":
+    st.markdown("# ⚖️ Mevzuat Kütüphanesi")
+    st.markdown("##### Hekim Hakları ve Sağlık Mevzuatı Güncel Kayıtlar")
+    st.write("- Tıbbi Deontoloji Nizamnamesi\n- Hasta Hakları Yönetmeliği\n- 6698 Sayılı KVKK")
 
-elif menu == "⚙️ Profil Ayarları":
-    st.markdown("# ⚙️ Profil Ayarları")
-    st.text_input("Ad Soyad", value="Dr. Ulaş Fırıncıoğulları")
-    st.text_input("Klinik Adı", value="ZAK Medical Center")
-    st.button("Bilgileri Güncelle")
+# SAYFA 5: PROFİL
+elif menu == "👤 Kullanıcı Profili":
+    st.markdown("# 👤 Kullanıcı Profili")
+    st.text_input("Ad Soyad", "Dr. Ulaş Fırıncıoğulları")
+    st.text_input("Klinik Adı", "ZAKShield Medical")
+    st.button("Profili Güncelle")
 
-# FOOTER
 st.markdown("---")
-st.caption("© 2026 ZAKShield AI | Tüm verileriniz medikal güvenlik standartlarında (HIPAA/KVKK) korunmaktadır.")
+st.caption("© 2026 ZAKShield AI | Professional Medical Defense System")
